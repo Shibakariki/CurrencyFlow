@@ -5,6 +5,21 @@ class APIHandler:
         self.api_key = api_key
         self.storage = storage
 
+    def fetch_supported_currencies(self):
+        params = {
+            'access_key': self.api_key
+        }
+
+        try:
+            response = requests.get(self.api_url+"/list", params=params)
+            data = response.json()
+            if "success" in data and data["success"] == True and "currencies" in data:
+                return list(data["currencies"].keys())
+            else:
+                raise Exception("Erreur lors de la récupération des devises supportées")
+        except requests.exceptions.RequestException as e:
+            raise Exception("Erreur de connexion à l'API : " + str(e))
+
     def fetch_exchange_rate(self, from_curr, to_curr):
         params = {
             'access_key': self.api_key,
@@ -13,7 +28,7 @@ class APIHandler:
         }
 
         try:
-            response = requests.get(self.api_url, params=params)
+            response = requests.get(self.api_url+"/live", params=params)
             data = response.json()
 
             rate = data["quotes"][from_curr + to_curr]
