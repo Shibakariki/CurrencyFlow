@@ -59,8 +59,15 @@ class MainWindow(QWidget):
             amount = float(amount)
             self.result_label.setText("Résultat : En attente de conversion...")
             self.result_label.setText(f"Conversion de {amount} {from_curr} à {to_curr}...")
-            result = self.api_handler.convert_currency(amount, from_curr, to_curr)
+            rate, result = self.api_handler.convert_currency(amount, from_curr, to_curr)
             self.result_label.setText(f"Résultat : {str(result)}")
+            self.storage.save_history({
+                "from": from_curr,
+                "to": to_curr,
+                "rate": rate,
+                "amount": amount,
+                "result": result
+            })
         except ValueError:
             self.result_label.setText("Erreur : Veuillez entrer un nombre valide")
         except Exception as e:

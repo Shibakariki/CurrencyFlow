@@ -1,9 +1,9 @@
 import requests
-
 class APIHandler:
-    def __init__(self, api_url, api_key):
+    def __init__(self, api_url, api_key, storage):
         self.api_url = api_url
         self.api_key = api_key
+        self.storage = storage
 
     def fetch_exchange_rate(self, from_curr, to_curr):
         params = {
@@ -12,12 +12,23 @@ class APIHandler:
             'currencies': to_curr,
         }
 
-        response = requests.get(self.api_url, params=params)
-        data = response.json()
+        try:
+            response = requests.get(self.api_url, params=params)
+            data = response.json()
 
-        if response.status_code != 200 or "error" in data:
-            raise Exception("Erreur lors de la récupération des taux de change.\n\n"+data["error"]["type"]+": \n"+data["error"]["info"])
-        rate = data["quotes"][from_curr + to_curr]
+            rate = data["quotes"][from_curr + to_curr]
+        except requests.exceptions.RequestException as e:
+            #check dans l'historique si on a déjà ce taux
+            history = self.storage.load_history()
+            for record in history:
+                if record["from"] == from_curr and record["to"] == to_curr:
+                    rate = record["rate"]
+                    break
+            else:
+                raise Exception("Erreur de connexion à l'API et pas de taux trouvé dans l'historique")
+        except Exception as e:
+            # raise Exception("Erreur lors de la récupération des taux de change : " + str(e))
+            raise Exception("Erreur lors de la récupération des taux de change")
 
         return rate
     
@@ -25,8 +36,7 @@ class APIHandler:
         if amount <= 0:
             raise ValueError("Le montant doit être supérieur à zéro.")
         
-        rate = 2
         rate = self.fetch_exchange_rate(from_curr, to_curr)
         converted_amount = round(rate * amount, 4)
         
-        return converted_amount
+        return rate, converted_amount

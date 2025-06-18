@@ -21,15 +21,15 @@ from services.storage import Storage
 from ui.main_window import MainWindow
 
 def main():
-    api_handler = APIHandler(API_URL, API_KEY)
     storage = Storage()
+    api_handler = APIHandler(API_URL, API_KEY, storage)
     window = MainWindow(api_handler, storage)
     return window
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setApplicationName("CurrencyFlow")
-    app.setApplicationVersion("1.0.0")
+    app.setApplicationVersion("1.1.0")
 
     window = main()  # window est bien une instance de MainWindow
     window.setWindowTitle("CurrencyFlow")
