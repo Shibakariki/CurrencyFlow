@@ -19,5 +19,7 @@ class Storage:
         if not isinstance(history, list):
             raise ValueError("History file is corrupted or not a list.")
         history.append(new_record)
+        # Sort history in reverse order (newest first)
+        history.sort(key=lambda x: x.get('timestamp', 0), reverse=True)
         with open(self.history_path, "w", encoding="utf-8") as f:
             json.dump(history, f, ensure_ascii=False, indent=2)
